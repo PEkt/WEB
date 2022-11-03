@@ -10,5 +10,6 @@ body {
 }
 
 canvas {
-    border: 1px solid lightslategreys;
+    border: 2px solid goldenrod;
+    background-color: antiquewhite;
 }
