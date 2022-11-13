@@ -1,72 +1,143 @@
-var c=document.getElementById("myCanvas");
-var ctx=c.getContext("2d");
-ctx.beginPath();
-ctx.arc(400, 400, 300, 0, 2*Math.PI);
-ctx.strokeStyle = "black";
-ctx.lineWidth = 5;
-ctx.fill();
-ctx.stroke();
+// Defint the canvas
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
 
-ctx.strokeStyle = "aqua"; // Задаём цвет обводки чёрный
-ctx.fillStyle = "aqua"; // Задаём цвет заливки чёрный
-ctx.lineWidth = 8; // Задаём ширину линий
-ctx.lineCap = "round"; // определяем как будут выглядеть концы линий
-ctx.translate(400, 400);
-ctx.save(); // Сохраняем в контекст 
-ctx.beginPath();
-for (var i = 0; i < 12; i++) {
-    ctx.rotate(Math.PI/6); 
-    ctx.moveTo(250,0);
-    ctx.lineTo(300,0);
-}
- 
-ctx.stroke(); // Нарисовали то, что ранее описали
-ctx.restore();
+// Define some size
+var radius = canvas.height / 2;
 
-//ctx.rotate((Math.Pi/30*min)+(Math.PI/1800)*sec)
-ctx.lineWidth = 10;
-ctx.strokeStyle="white"
-ctx.beginPath(); // Ставим кисть
-for ( var i=0; i<24; i++){
-    ctx.rotate(Math.PI/12)
-    ctx.moveTo(200,115); // Перемешаем кисть
-    ctx.lineTo(0,0);
+// Center the ctx
+ctx.translate(radius, radius);
 
-} // Рисуем линию
-ctx.stroke(); // Обводит
-ctx.restore(); // Восстанавливаем всё сохранённого стэка
-ctx.save();
+// Draw the Clock every second
+setInterval(drawClock, 1000);
 
-// Событие загрузки страницы
-window.addEventListener('load', function () {
-    // Создаём интервал
-    setInterval(clockPainting, 1000);
-});
-
-//let R = 300/2;
-//for(let d = 0; d < 60; ++d) {
-    //let angle = ( d / 60) * ( 2 * Math.Pi);
-    // let pX = Math.cos(angle) * R;
-    //let pY = Math.sin(angle) * R;
-    //let qX = 0.9 * pX;
-    //let qY = 0.9 * pY;
-    //pX += R; pY += R;
-    //qY += R; qY += R;
-//}
-
-let date = new Date();
-let hours = date.getHours();
-let minutes = date.getMinutes();
-let seconds = date.getSeconds();
-console.log(hours, minutes, seconds);
-
-secondsAngle = (seconds / 60) * (2 * Math.PI);
-minutesAngle = (minutes / 60) * (2 * Math.PI);
-hoursAngle = ((hours % 12) /12) * (2 * Math.PI);
-
-function drawWatch() {
-    context.clearRect(0, 0, 300, 300);
-    setTimeout(drawWatch, 1000);
+function clearCanvas(canvas) {
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.globalCompositeOperation = "copy";
+  ctx.strokeStyle = "transparent";
+  ctx.beginPath();
+  ctx.lineTo(0, 0);
+  ctx.stroke();
+  ctx.restore();
 }
 
-drawWatch();
+// Draw the Clock
+function drawClock() {
+  drawFace(ctx, radius);
+  drawTime(ctx, radius);
+  drawSteps(ctx, radius);
+  drawNose(ctx, radius);
+}
+
+// Define how to draw the Face
+function drawFace(ctx, radius) {
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = "rgba(255, 255, 255)";
+  ctx.fill();
+}
+
+// Define how to draw the Numbers
+function drawNumbers(ctx, radius) {
+  var ang;
+  var num;
+
+  // Define the text styles
+  ctx.font = "14px 'Lato'";
+  ctx.fillStyle = "black";
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "center";
+
+  // Rotate and put number and rotate back
+  for (num = 1; num <= 12; num++) {
+    ang = (num * Math.PI) / 6;
+    ctx.rotate(ang);
+    ctx.translate(0, -radius * 0.85);
+    ctx.rotate(-ang);
+    ctx.fillText(num.toString(), 0, 0);
+    ctx.rotate(ang);
+    ctx.translate(0, radius * 0.85);
+    ctx.rotate(-ang);
+  }
+}
+
+// Draw the Hands depends on current time
+function drawTime(ctx, radius) {
+  // Get the current time
+  var now = new Date();
+  var hour = now.getHours();
+  var minute = now.getMinutes();
+  var second = now.getSeconds();
+
+  // Draw the Hour Hand
+  hour = hour % 12;
+  hour =
+    (hour * Math.PI) / 6 +
+    (minute * Math.PI) / (6 * 60) +
+    (second * Math.PI) / (360 * 60);
+  drawHand(ctx, hour, radius * 0.65, 12, "black");
+  // Draw the Minute Hand
+  minute = (minute * Math.PI) / 30 + (second * Math.PI) / (30 * 60);
+  drawHand(ctx, minute, radius * 0.8, 12, "black");
+  // Draw the Second Hand
+  second = (second * Math.PI) / 30;
+  drawHand(ctx, second, radius * 0.75, 4, "#b598ea");
+}
+
+// Define how to draw the Hands
+function drawHand(ctx, pos, length, width, color) {
+  ctx.beginPath();
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.moveTo(0, 0);
+  ctx.rotate(pos);
+  ctx.lineTo(0, -length);
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.rotate(-pos);
+}
+
+function drawSteps(ctx, radius) {
+  for (num = 1; num <= 12; num++) {
+    ang = (num * Math.PI) / 6;
+    ctx.rotate(ang);
+    ctx.translate(0, -radius * 0.85);
+    ctx.rotate(-ang);
+    drawStep(ctx, ang, 0, 8, "black");
+    ctx.rotate(ang);
+    ctx.translate(0, radius * 0.85);
+    ctx.rotate(-ang);
+  }
+
+  for (num = 1; num <= 60; num++) {
+    ang = (num * Math.PI) / 30;
+    ctx.rotate(ang);
+    ctx.translate(0, -radius * 0.85);
+    ctx.rotate(-ang);
+    drawStep(ctx, ang, 1, 2, "black");
+    ctx.rotate(ang);
+    ctx.translate(0, radius * 0.85);
+    ctx.rotate(-ang);
+  }
+}
+
+function drawStep(ctx, pos, length, width, color) {
+  ctx.beginPath();
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.moveTo(0, 0);
+  ctx.rotate(pos);
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, -26);
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.rotate(-pos);
+}
+
+function drawNose(ctx, radius) {
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.08, 0, 2 * Math.PI);
+  ctx.fillStyle = "#b598ea";
+  ctx.fill();
+}
